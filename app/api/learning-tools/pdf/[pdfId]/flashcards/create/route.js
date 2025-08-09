@@ -10,27 +10,27 @@ export async function POST(req, { params }) {
     try {
         await connectToDB();
 
-        const { id } = await params;
+        const { pdfId } = await params;
         const { title, pages } = await req.json();
 
         
-        const { chunks } = await PDF.findById(id);
+        const { chunks } = await PDF.findById(pdfId);
         
         let selectedChunks = [];
         pages.forEach(page => {
             selectedChunks.push(...chunks.filter(chunk => chunk.pageNumber === page));
         });
         
-        // const llm = new ChatGoogleGenerativeAI({
-        //     model: "gemini-2.0-flash",
-        //     maxOutputTokens: 2048,
-        //     apiKey: process.env.GOOGLE_API_KEY
-        // });
-
-        const llm = new Ollama({
-            model: "gemma3:4b",
-            baseUrl: "http://localhost:11434"
+        const llm = new ChatGoogleGenerativeAI({
+            model: "gemini-2.0-flash",
+            maxOutputTokens: 2048,
+            apiKey: process.env.GOOGLE_API_KEY
         });
+
+        // const llm = new Ollama({
+        //     model: "gemma3:4b",
+        //     baseUrl: "http://localhost:11434"
+        // });
 
         const arrayResults = await Promise.all(
             selectedChunks.map(async chunk => {
@@ -65,7 +65,7 @@ export async function POST(req, { params }) {
 
                 const res = await llm.invoke(prompt);
 
-                return res.trim();
+                return res.content.trim();
             })
         );  
         
@@ -87,8 +87,8 @@ export async function POST(req, { params }) {
             flashCards: filteredFlashCardList
         }
 
-        await PDF.findOneAndUpdate(
-            { _id: id },
+        await PDF.updateOne(
+            { _id: pdfId },
             { $push: { flashCards: flashCardData }},
             { new: true }
         );

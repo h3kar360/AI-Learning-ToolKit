@@ -10,7 +10,7 @@ dotenv.config();
 
 export async function POST(req, { params }) {
     try {
-        const { id } = await params;
+        const { pdfId } = await params;
         const { question } = await req.json();      
 
         const vectorStore = await getVectorStore();
@@ -18,7 +18,7 @@ export async function POST(req, { params }) {
         const retriever = vectorStore.asRetriever({
             k: 4,
             filter: {
-                pdfId: id
+                pdfId
             }
         });
 

@@ -3,7 +3,7 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { getVectorStore } from "@/lib/getVectorStore";
 import { PDF } from "@/mongoose/schemas/pdf";
 import { connectToDB } from "@/lib/mongodbConnect";
-import  { Document } from "@langchain/core/documents";
+import { Document } from "@langchain/core/documents";
 
 export async function POST(req) {
     try {     
@@ -11,7 +11,7 @@ export async function POST(req) {
 
         const { title, source } = await req.json();
 
-        const vectorStore = await getVectorStore();
+        const { vectorStore } = await getVectorStore();
 
         const loader = new PDFLoader(source);
         const docs = await loader.load();
