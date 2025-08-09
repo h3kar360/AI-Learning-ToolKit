@@ -16,13 +16,11 @@
     "@langchain/pinecone": "^0.2.0",
     "@langchain/tavily": "^0.1.4",
     "@pinecone-database/pinecone": "^6.1.2",
-    "cheerio": "^1.1.2",
     "dotenv": "^17.2.1",
     "langchain": "^0.3.30",
     "mongoose": "^8.17.0",
     "next": "15.4.5",
     "pdf-parse": "^1.1.1",
-    "pdfjs-dist": "^5.4.54",
     "react": "19.1.0",
     "react-dom": "19.1.0"
   },
