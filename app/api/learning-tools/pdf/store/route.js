@@ -86,7 +86,7 @@ export async function POST(req) {
       ids,
     });
 
-    return Response.json({ pdfId, publicUrl }, { status: 201 });
+    return Response.json({ pdfId }, { status: 201 });
   } catch (error) {
     console.error(error);
     return Response.json({ error: error.message }, { status: 500 });

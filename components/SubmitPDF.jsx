@@ -1,11 +1,14 @@
 "use client";
 import React from "react";
+import { useRouter } from "next/navigation";
 
 const SubmitPDF = () => {
-  const upload = async (formData) => {
-    const formdata = new FormData();
-    formdata.append("title", formData.get("title"));
-    formdata.append("pdf", formData.get("pdf"));
+  const router = useRouter();
+
+  const upload = async (e) => {
+    e.preventDefault();
+
+    const formdata = new FormData(e.target);
 
     try {
       const res = await fetch("/api/learning-tools/pdf/store", {
@@ -14,17 +17,18 @@ const SubmitPDF = () => {
       });
 
       const data = await res.json();
-      console.log(data);
+
+      router.push(`/pdf/${data.pdfId}`);
     } catch (error) {
       console.error(error);
     }
   };
 
   return (
-    <div className="flex justify-center">
+    <div className="flex justify-center pt-10">
       <form
         className="flex flex-col border-2 gap-5 p-5 rounded-2xl"
-        action={upload}
+        onSubmit={upload}
       >
         <h1 className="text-5xl">Upload PDF</h1>
         <input
@@ -40,7 +44,10 @@ const SubmitPDF = () => {
           accept="application/pdf"
           required
         />
-        <button type="submit" className="rounded-2xl border-2 py-3">
+        <button
+          type="submit"
+          className="rounded-2xl border-2 py-3 hover:bg-white hover:text-black"
+        >
           Submit
         </button>
       </form>
