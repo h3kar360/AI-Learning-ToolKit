@@ -9,9 +9,11 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url
 ).toString();
 
+export let totalPages;
+
 const PDFRenderer = ({ pdfId }) => {
   const [pdfUrl, setPdfUrl] = useState("");
-  const [numPages, setNumPages] = useState(null);
+  const [numPages, setNumPages] = useState(0);
   const [currPage, setCurrPage] = useState(1);
   const [pageHeight, setPageHeight] = useState(0);
 
@@ -26,7 +28,6 @@ const PDFRenderer = ({ pdfId }) => {
 
         const { source } = data.pdf;
 
-        console.log(source);
         setPdfUrl(source);
       } catch (error) {
         console.error(error);
@@ -38,6 +39,7 @@ const PDFRenderer = ({ pdfId }) => {
 
   const onDocumentLoadSuccess = ({ numPages }) => {
     setNumPages(numPages);
+    totalPages = numPages;
   };
 
   const onPageRenderSuccess = (page) => {

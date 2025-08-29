@@ -7,34 +7,47 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export async function POST(req, { params }) {
-    try {
-        await connectToDB();
+  try {
+    await connectToDB();
 
-        const { pdfId } = await params;
-        const { title, pages } = await req.json();
+    const { pdfId } = await params;
+    const { title, pages } = await req.json();
 
-        
-        const { chunks } = await PDF.findById(pdfId);
-        
-        let selectedChunks = [];
-        pages.forEach(page => {
-            selectedChunks.push(...chunks.filter(chunk => chunk.pageNumber === page));
-        });
-        
-        const llm = new ChatGoogleGenerativeAI({
-            model: "gemini-2.0-flash",
-            maxOutputTokens: 2048,
-            apiKey: process.env.GOOGLE_API_KEY
-        });
+    const completePages = pages.flatMap((chunk) => {
+      if (chunk.includes("-")) {
+        const range = chunk.split("-");
+        return Array.from(
+          { length: range[1] - range[0] + 1 },
+          (_, i) => Number(range[0]) + i
+        );
+      }
 
-        // const llm = new Ollama({
-        //     model: "gemma3:4b",
-        //     baseUrl: "http://localhost:11434"
-        // });
+      return chunk;
+    });
 
-        const arrayResults = await Promise.all(
-            selectedChunks.map(async chunk => {
-                const prompt = `You are an expert flashcard generator for students.
+    const { chunks } = await PDF.findById(pdfId);
+
+    let selectedChunks = [];
+    completePages.forEach((page) => {
+      selectedChunks.push(
+        ...chunks.filter((chunk) => chunk.pageNumber === page)
+      );
+    });
+
+    const llm = new ChatGoogleGenerativeAI({
+      model: "gemini-2.0-flash",
+      maxOutputTokens: 2048,
+      apiKey: process.env.GOOGLE_API_KEY,
+    });
+
+    // const llm = new Ollama({
+    //     model: "gemma3:4b",
+    //     baseUrl: "http://localhost:11434"
+    // });
+
+    const arrayResults = await Promise.all(
+      selectedChunks.map(async (chunk) => {
+        const prompt = `You are an expert flashcard generator for students.
 
                                 Your task is to generate highly effective flashcards from the context provided. Focus only on core educational value. Avoid creating cards for trivial or repetitive information.
 
@@ -63,39 +76,48 @@ export async function POST(req, { params }) {
 
                                 Flashcards:`;
 
-                const res = await llm.invoke(prompt);
+        const res = await llm.invoke(prompt);
 
-                return res.content.trim();
-            })
-        );  
-        
-        //transforming the llm string into an array of question and answer objects
-        const results = arrayResults.join("");
-       
-        //splitting flashcards into objects
-        const flashCardList = results.split("$")
-            .filter(Boolean)
-            .map(qna => {
-                const [question, answer] = qna.split("@");
-                return { question, answer };
-            });
+        return res.content.trim();
+      })
+    );
 
-        const filteredFlashCardList = flashCardList.filter(flashCard => flashCard.question !== null && flashCard.answer !== null);
-        
-        const flashCardData = {
-            title,
-            flashCards: filteredFlashCardList
-        }
+    //transforming the llm string into an array of question and answer objects
+    const results = arrayResults.join("");
 
-        await PDF.updateOne(
-            { _id: pdfId },
-            { $push: { flashCards: flashCardData }},
-            { new: true }
-        );
+    //splitting flashcards into objects
+    const flashCardList = results
+      .split("$")
+      .filter(Boolean)
+      .map((qna) => {
+        const [question, answer] = qna.split("@");
+        return { question, answer };
+      });
 
-        return Response.json({ message: "successfully created a flashcard" }, { stuats: 201 });
-    } catch (error) {
-        console.error(error);
-        return Response.json({ error: error }, { status: 500 });
-    }
-} 
+    const filteredFlashCardList = flashCardList.filter(
+      (flashCard) => flashCard.question !== null && flashCard.answer !== null
+    );
+
+    const flashCardData = {
+      title,
+      flashCards: filteredFlashCardList,
+    };
+
+    const updatedPdf = await PDF.findOneAndUpdate(
+      { _id: pdfId },
+      { $push: { flashCards: flashCardData } },
+      { new: true }
+    );
+
+    const flashCardId =
+      updatedPdf.flashCards[updatedPdf.flashCards.length - 1]._id;
+
+    return Response.json(
+      { message: "successfully created a flashcard", flashCardId },
+      { stuats: 201 }
+    );
+  } catch (error) {
+    console.error(error);
+    return Response.json({ error: error }, { status: 500 });
+  }
+}
