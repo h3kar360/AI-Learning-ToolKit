@@ -3,11 +3,13 @@ import Link from "next/link";
 
 const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
-const FlashCardPreview = ({ pdfId, title, flashCardId }) => {
+const FlashCardPreview = ({ pdfId, title, flashCardId, setDeleted }) => {
   const delBtn = async () => {
+    console.log("pressed");
+
     try {
       const res = await fetch(
-        `${baseUrl}/learning-tools/pdf/${pdfId}/flashcards/${flashCardId}/delete`,
+        `${baseUrl}/api/learning-tools/pdf/${pdfId}/flashcards/${flashCardId}/delete`,
         {
           method: "DELETE",
         }
@@ -16,6 +18,8 @@ const FlashCardPreview = ({ pdfId, title, flashCardId }) => {
       if (!res.ok) {
         throw new Error("unable to delete flash card");
       }
+
+      setDeleted(true);
     } catch (error) {
       console.error(error);
     }

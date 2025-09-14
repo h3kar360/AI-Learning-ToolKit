@@ -6,6 +6,7 @@ const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
 
 const ShowUserFlashCards = ({ pdfId }) => {
   const [flashCards, setFlashCards] = useState([]);
+  const [deleted, setDeleted] = useState(false);
 
   useEffect(() => {
     const getFlashCardsList = async (pdfId) => {
@@ -21,13 +22,14 @@ const ShowUserFlashCards = ({ pdfId }) => {
         const { flashCards } = await res.json();
 
         setFlashCards(flashCards);
+        setDeleted(false);
       } catch (error) {
         console.error(error);
       }
     };
 
     getFlashCardsList(pdfId);
-  }, []);
+  }, [deleted]);
 
   return (
     <div className="flex flex-col gap-4 mt-4">
@@ -37,6 +39,7 @@ const ShowUserFlashCards = ({ pdfId }) => {
           pdfId={pdfId}
           title={flashcard.title}
           flashCardId={flashcard._id}
+          setDeleted={setDeleted}
         />
       ))}
     </div>
