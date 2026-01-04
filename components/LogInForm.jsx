@@ -16,7 +16,7 @@ const LogInForm = () => {
         e.preventDefault();
 
         try {
-            const { error } = await supabase.auth.signInWithPassword({
+            const { data, error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
                 options: {
@@ -26,6 +26,8 @@ const LogInForm = () => {
 
             if (error) setError(error.message);
             else router.push("/");
+
+            if (!data.session) setError("Incorrect email address or password");
         } catch (error) {
             console.error(error);
         }
