@@ -5,9 +5,9 @@ const FlashCardsSchema = new mongoose.Schema({
     flashCards: [
         {
             question: String,
-            answer: String
-        }
-    ]
+            answer: String,
+        },
+    ],
 });
 
 const PDFSchema = new mongoose.Schema({
@@ -16,10 +16,11 @@ const PDFSchema = new mongoose.Schema({
     chunks: [
         {
             content: String,
-            pageNumber: Number
-        }
+            pageNumber: Number,
+        },
     ],
-    flashCards: [FlashCardsSchema]
+    flashCards: [FlashCardsSchema],
+    userId: { type: String, required: true },
 });
 
 export const PDF = mongoose.models.PDF || mongoose.model("PDF", PDFSchema);
