@@ -6,17 +6,19 @@ export async function GET(req, { params }) {
         await connectToDB();
 
         const { pdfId, flashCardId } = await params;
-           
+
         const pdf = await PDF.findById(pdfId).lean();
 
         if (!pdf) {
             return Response.json({ error: "PDF not found" }, { status: 404 });
         }
-        
-        const flashCardList = pdf.flashCards.find(flashCard => flashCard._id.toString() === flashCardId);
+
+        const flashCardList = pdf.flashCards.find(
+            (flashCard) => flashCard._id.toString() === flashCardId
+        );
         return Response.json({ flashCardList }, { status: 200 });
     } catch (error) {
         console.error(error);
         return Response.json({ error }, { status: 500 });
-    }    
+    }
 }

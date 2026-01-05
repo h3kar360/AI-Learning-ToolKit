@@ -1,18 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
 const LogInForm = () => {
+    //const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
+
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
 
     const router = useRouter();
 
-    const signup = async (e) => {
+    const login = async (e) => {
         e.preventDefault();
 
         try {
@@ -33,10 +34,23 @@ const LogInForm = () => {
         }
     };
 
+    const forgotPass = async (email) => {
+        const { data, error } = await supabase.auth.resetPasswordForEmail(
+            email,
+            {
+                redirectTo: `http://localhost:3000/reset-password`,
+            }
+        );
+
+        if (error) setError(error);
+
+        alert("A reset password link has been sent to your e-mail");
+    };
+
     return (
         <form
             className="flex flex-col w-125 h-150 items-center justify-evenly border rounded-2xl"
-            onSubmit={signup}
+            onSubmit={login}
         >
             <div className="text-6xl">Log In</div>
             <input
@@ -59,14 +73,13 @@ const LogInForm = () => {
             >
                 Log in account
             </button>
-            <div className="flex gap-1">
-                <div>Don't have an account?</div>
-                <Link
-                    href="/login"
-                    className="text-blue-500 hover:text-blue-400"
+            <div>
+                <p
+                    className="text-blue-500 hover:text-blue-400 cursor-pointer"
+                    onClick={() => forgotPass(email)}
                 >
-                    sign up
-                </Link>
+                    Forgot password?
+                </p>
             </div>
             {error && <p className="text-red-500">{error}</p>}
         </form>

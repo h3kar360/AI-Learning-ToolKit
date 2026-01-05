@@ -19,6 +19,8 @@ const SignUpForm = () => {
             });
 
             if (error) setError(error.message);
+
+            alert("Confirm your account in your e-mail");
         } catch (error) {
             console.error(error);
         }

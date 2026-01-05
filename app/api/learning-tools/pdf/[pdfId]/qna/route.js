@@ -3,65 +3,73 @@ import { createStuffDocumentsChain } from "langchain/chains/combine_documents";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { StringOutputParser } from "@langchain/core/output_parsers";
-import { Ollama } from "@langchain/ollama";
+// import { Ollama } from "@langchain/ollama";
 import dotenv from "dotenv";
 
 dotenv.config();
 
 export async function POST(req, { params }) {
-  try {
-    const { pdfId } = await params;
-    const { question } = await req.json();
+    try {
+        const { pdfId } = params;
+        const { question } = await req.json();
 
-    const { vectorStore } = await getVectorStore();
+        const { vectorStore } = await getVectorStore();
 
-    const retriever = vectorStore.asRetriever({
-      k: 4,
-      filter: {
-        pdfId,
-      },
-    });
+        const retriever = vectorStore.asRetriever({
+            k: 4,
+            filter: { pdfId },
+        });
 
-    const prompt = ChatPromptTemplate.fromMessages([
-      [
-        "human",
-        `You are an assistant for question-answering tasks. 
-                Use the following pieces of retrieved context to answer the question. 
-                If you don't know the answer, just say that you don't know.
-                Use three sentences maximum and keep the answer concise.
-                Question: {question} 
-                Context: {context} 
-                Answer:`,
-      ],
-    ]);
+        // Use invoke() as per docs
+        const retrievedDocs = await retriever.invoke(question);
 
-    const llm = new ChatGoogleGenerativeAI({
-      model: "gemini-2.0-flash",
-      maxOutputTokens: 2048,
-      apiKey: process.env.GOOGLE_API_KEY,
-    });
+        if (!retrievedDocs || retrievedDocs.length === 0) {
+            return Response.json(
+                { results: "No relevant context found." },
+                { status: 200 }
+            );
+        }
 
-    // const llm = new Ollama({
-    //     model: "gemma3:4b",
-    //     baseUrl: "http://localhost:11434"
-    // });
+        const contextText = retrievedDocs.map((d) => d.pageContent).join("\n");
 
-    const ragChain = await createStuffDocumentsChain({
-      llm,
-      prompt,
-      outputParser: new StringOutputParser(),
-    });
+        const prompt = ChatPromptTemplate.fromMessages([
+            [
+                "human",
+                `You are an assistant for question-answering tasks. 
+Use the following pieces of retrieved context to answer the question. 
+If you don't know the answer, just say that you don't know.
+Use three sentences maximum and keep the answer concise.
+Question: {question} 
+Context: {context} 
+Answer:`,
+            ],
+        ]);
 
-    const retrievedDocs = await retriever.invoke(question);
+        const llm = new ChatGoogleGenerativeAI({
+            model: "gemini-2.0-flash",
+            maxOutputTokens: 2048,
+            apiKey: process.env.GOOGLE_API_KEY,
+        });
 
-    let results = await ragChain.invoke({
-      question,
-      context: retrievedDocs,
-    });
+        // const llm = new Ollama({
+        //   model: "gemma3:4b",
+        //   baseUrl: "http://localhost:11434"
+        // });
 
-    return Response.json({ results }, { status: 200 });
-  } catch (error) {
-    console.error(error);
-    return Response.json({ error }, { status: 500 });
-  }
+        const ragChain = await createStuffDocumentsChain({
+            llm,
+            prompt,
+            outputParser: new StringOutputParser(),
+        });
+
+        const results = await ragChain.invoke({
+            question,
+            context: contextText,
+        });
+
+        return Response.json({ results }, { status: 200 });
+    } catch (error) {
+        console.error(error);
+        return Response.json({ error }, { status: 500 });
+    }
 }
