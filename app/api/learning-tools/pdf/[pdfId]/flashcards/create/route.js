@@ -49,7 +49,7 @@ export async function POST(req, { params }) {
         //   baseUrl: "http://localhost:11434"
         // });
 
-        let batch = selectedChunks.map((c) => c.text).join(" ");
+        let batch = selectedChunks.map((c) => c.content).join(" ");
 
         const prompt = `You are an expert flashcard generator for students.
 
@@ -80,7 +80,7 @@ ${batch}
 
 Flashcards:`;
 
-        const res = await llm.invoke([["system", prompt]]);
+        const res = await llm.invoke(prompt);
 
         const results = res.content.trim();
 
