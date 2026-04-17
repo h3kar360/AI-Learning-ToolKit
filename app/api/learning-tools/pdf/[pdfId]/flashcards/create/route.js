@@ -1,16 +1,19 @@
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+//import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 // import { Ollama } from "@langchain/ollama"; // optional local LLM
+import { GoogleGenAI } from "@google/genai";
 import { connectToDB } from "@/lib/mongodbConnect";
 import { PDF } from "@/mongoose/schemas/pdf";
 import dotenv from "dotenv";
 
 dotenv.config();
 
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+
 export async function POST(req, { params }) {
     try {
         await connectToDB();
 
-        const { pdfId } = params;
+        const { pdfId } = await params;
         const { title, pages } = await req.json();
 
         // Flatten page ranges
@@ -19,7 +22,7 @@ export async function POST(req, { params }) {
                 const [start, end] = chunk.split("-").map(Number);
                 return Array.from(
                     { length: end - start + 1 },
-                    (_, i) => start + i
+                    (_, i) => start + i,
                 );
             }
             return [Number(chunk)];
@@ -33,16 +36,23 @@ export async function POST(req, { params }) {
         const selectedChunks = [];
         completePages.forEach((page) => {
             selectedChunks.push(
-                ...chunks.filter((chunk) => chunk.pageNumber === page)
+                ...chunks.filter((chunk) => chunk.pageNumber === page),
             );
         });
 
         // Initialize LLM
-        const llm = new ChatGoogleGenerativeAI({
-            model: "gemini-2.0-flash",
-            maxOutputTokens: 2048,
-            apiKey: process.env.GOOGLE_API_KEY,
-        });
+        // const llm = new ChatGoogleGenerativeAI({
+        //     model: "gemini-1.5-flash",
+        //     maxOutputTokens: 8192,
+        //     apiKey: process.env.GOOGLE_API_KEY,
+        //     maxRetries: 1,
+        // });
+
+        // const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+        // const model = genAI.getGenerativeModel({
+        //     model: "gemini-3-flash-preview",
+        //     generationConfig: { maxOutputTokens: 2048 },
+        // });
 
         // const llm = new Ollama({
         //   model: "gemma3:4b",
@@ -80,9 +90,24 @@ ${batch}
 
 Flashcards:`;
 
-        const res = await llm.invoke(prompt);
+        // const res = await llm.invoke([
+        //     {
+        //         type: "human",
+        //         content: prompt,
+        //     },
+        // ]);
 
-        const results = res.content.trim();
+        // if (!res || !res.content) throw new Error("No response from Gemini");
+
+        const res = await ai.models.generateContent({
+            model: "gemini-3-flash-preview",
+            contents: prompt,
+        });
+
+        //const result = await model.generateContent(prompt);
+        const response = res.text;
+
+        const results = response.text().trim();
 
         // Split flashcards into objects
         const flashCardList = results
@@ -95,7 +120,7 @@ Flashcards:`;
 
         const filteredFlashCardList = flashCardList.filter(
             (flashCard) =>
-                flashCard.question !== null && flashCard.answer !== null
+                flashCard.question !== null && flashCard.answer !== null,
         );
 
         const flashCardData = {
@@ -106,7 +131,7 @@ Flashcards:`;
         const updatedPdf = await PDF.findOneAndUpdate(
             { _id: pdfId },
             { $push: { flashCards: flashCardData } },
-            { new: true }
+            { new: true },
         );
 
         const flashCardId =
@@ -114,10 +139,11 @@ Flashcards:`;
 
         return Response.json(
             { message: "successfully created a flashcard", flashCardId },
-            { status: 201 }
+            { status: 201 },
         );
     } catch (error) {
         console.error(error);
+        if (error.cause) console.error("cause: " + error.cause);
         return Response.json({ error: error }, { status: 500 });
     }
 }
