@@ -26,7 +26,7 @@ export async function POST(req, { params }) {
         if (!retrievedDocs || retrievedDocs.length === 0) {
             return Response.json(
                 { results: "No relevant context found." },
-                { status: 200 }
+                { status: 200 },
             );
         }
 
@@ -46,7 +46,7 @@ Answer:`,
         ]);
 
         const llm = new ChatGoogleGenerativeAI({
-            model: "gemini-2.0-flash",
+            model: "gemini-2.5-flash",
             maxOutputTokens: 2048,
             apiKey: process.env.GOOGLE_API_KEY,
         });

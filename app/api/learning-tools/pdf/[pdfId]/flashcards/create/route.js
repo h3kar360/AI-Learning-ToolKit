@@ -100,14 +100,14 @@ Flashcards:`;
         // if (!res || !res.content) throw new Error("No response from Gemini");
 
         const res = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
+            model: "gemini-3.5-flash",
             contents: prompt,
         });
 
         //const result = await model.generateContent(prompt);
         const response = res.text;
 
-        const results = response.text().trim();
+        const results = response.trim();
 
         // Split flashcards into objects
         const flashCardList = results
