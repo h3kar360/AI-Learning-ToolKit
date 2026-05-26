@@ -1,13 +1,9 @@
 "use client";
-import dynamic from "next/dynamic";
 import React from "react";
-
-const PDFRenderer = dynamic(() => import("@/components/PDFRenderer"), {
-  ssr: false,
-});
+import PDFRenderer from "./PDFRenderer";
 
 const ClientPDFWrapper = ({ pdfId }) => {
-  return <PDFRenderer pdfId={pdfId} />;
+    return <PDFRenderer pdfId={pdfId} />;
 };
 
 export default ClientPDFWrapper;

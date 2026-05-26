@@ -13,12 +13,12 @@ const Home = () => {
         const getPdfs = async () => {
             try {
                 const res = await fetch(
-                    `${baseUrl}/api/learning-tools/pdf/retrieve`
+                    `${baseUrl}/api/learning-tools/pdf/retrieve`,
                 );
 
                 if (!res.ok) {
                     throw new Error(
-                        `Fetch failed: ${res.status}, ${res.statusText}`
+                        `Fetch failed: ${res.status}, ${res.statusText}`,
                     );
                 }
 
@@ -48,7 +48,7 @@ const Home = () => {
     return (
         <div className="mx-10">
             <SubmitPDF />
-            <div className="grid m-20 grid-cols-5">
+            <div className="grid m-20 grid-cols-5 gap-10">
                 {pdfs.map((pdf) => (
                     <PDFPreviewCard
                         key={pdf._id}

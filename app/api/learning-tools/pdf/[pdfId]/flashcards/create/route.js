@@ -90,21 +90,11 @@ ${batch}
 
 Flashcards:`;
 
-        // const res = await llm.invoke([
-        //     {
-        //         type: "human",
-        //         content: prompt,
-        //     },
-        // ]);
-
-        // if (!res || !res.content) throw new Error("No response from Gemini");
-
         const res = await ai.models.generateContent({
             model: "gemini-3.5-flash",
             contents: prompt,
         });
 
-        //const result = await model.generateContent(prompt);
         const response = res.text;
 
         const results = response.trim();

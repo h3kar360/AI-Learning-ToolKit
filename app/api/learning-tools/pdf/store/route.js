@@ -23,7 +23,10 @@ export async function POST(req) {
         const pdfFile = formData.get("pdf");
 
         if (!pdfFile) {
-            return Response.json({ error }, { status: 400 });
+            return Response.json(
+                { error: "No PDF file provided" },
+                { status: 400 },
+            );
         }
 
         const arrayBuffer = await pdfFile.arrayBuffer();
@@ -67,13 +70,9 @@ export async function POST(req) {
 
         const newPdfData = new PDF(pdfData);
 
-        let pdfId;
-
         //saving pdf data to mongodb
-        await newPdfData
-            .save()
-            .then((pdf) => (pdfId = pdf._id.toString()))
-            .catch((err) => console.error(err));
+        const savedPdf = await newPdfData.save();
+        const pdfId = savedPdf._id.toString();
 
         const documents = splits.map(
             (split) =>
@@ -83,7 +82,7 @@ export async function POST(req) {
                         ...split.metadata,
                         pdfId,
                     },
-                })
+                }),
         );
 
         const ids = splits.map((_, i) => `${pdfId}_${i}`); // unique IDs per chunk
