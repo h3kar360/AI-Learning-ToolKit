@@ -1,19 +1,10 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { useSearchParams } from "next/navigation";
 
 const ResetPasswordPage = () => {
-    const searchParams = useSearchParams();
-
-    const code = searchParams.get("code");
-
     const [password, setPassword] = useState("");
     const [message, setMessage] = useState("");
-
-    useEffect(() => {
-        if (code) supabase.auth.setSession(code);
-    }, [code]);
 
     const handleReset = async (e) => {
         e.preventDefault();
@@ -39,6 +30,7 @@ const ResetPasswordPage = () => {
                 placeholder="Password"
                 className="bg-white placeholder-gray-500 rounded-xl py-2 px-3 w-[calc(100%-10rem)] text-black"
                 onChange={(e) => setPassword(e.target.value)}
+                required
             />
             <button
                 type="submit"

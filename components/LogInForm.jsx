@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useRouter } from "next/navigation";
 
 const LogInForm = () => {
-    //const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
+    const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -38,11 +38,11 @@ const LogInForm = () => {
         const { data, error } = await supabase.auth.resetPasswordForEmail(
             email,
             {
-                redirectTo: `http://localhost:3000/reset-password`,
-            }
+                redirectTo: `${baseURL}/reset-password`,
+            },
         );
 
-        if (error) setError(error);
+        if (error) setError(error.message);
 
         alert("A reset password link has been sent to your e-mail");
     };
