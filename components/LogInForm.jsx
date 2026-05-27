@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
-import { useRouter } from "next/navigation";
 
 const LogInForm = () => {
     const baseURL = process.env.NEXT_PUBLIC_BASE_URL;
@@ -10,8 +9,6 @@ const LogInForm = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
-
-    const router = useRouter();
 
     const login = async (e) => {
         e.preventDefault();
@@ -35,8 +32,7 @@ const LogInForm = () => {
                 return;
             }
 
-            router.push("/");
-            router.refresh();
+            window.location.href = "/";
         } catch (error) {
             console.error(error);
         }
