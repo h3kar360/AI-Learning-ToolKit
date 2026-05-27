@@ -3,11 +3,7 @@ import { connectToDB } from "@/lib/mongodbConnect";
 
 export async function GET(req) {
     try {
-        const userId = req.headers.get("x-user-id");
-
-        if (!userId) {
-            return Response.json({ error: "Unauthorized" }, { status: 401 });
-        }
+        const userId = req.headers.get("x-verified-user-id");
 
         await connectToDB();
 

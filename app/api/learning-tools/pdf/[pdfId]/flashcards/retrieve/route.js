@@ -3,11 +3,13 @@ import { connectToDB } from "@/lib/mongodbConnect";
 
 export async function GET(req, { params }) {
     try {
+        const userId = req.headers.get("x-verified-user-id");
+
         await connectToDB();
 
         const { pdfId } = await params;
 
-        const pdf = await PDF.findById(pdfId).lean();
+        const pdf = await PDF.findOne({ _id: pdfId, userId }).lean();
 
         if (!pdf) {
             return Response.json({ error: "PDF not found" }, { status: 404 });

@@ -4,12 +4,11 @@ import { ChatPromptTemplate } from "@langchain/core/prompts";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { StringOutputParser } from "@langchain/core/output_parsers";
 // import { Ollama } from "@langchain/ollama";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 export async function POST(req, { params }) {
     try {
+        const userId = req.headers.get("x-verified-user-id");
+
         const { pdfId } = await params;
         const { question } = await req.json();
 
@@ -17,7 +16,7 @@ export async function POST(req, { params }) {
 
         const retriever = vectorStore.asRetriever({
             k: 4,
-            filter: { pdfId },
+            filter: { pdfId, userId },
         });
 
         const retrievedDocs = await retriever.invoke(question);

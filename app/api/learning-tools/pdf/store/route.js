@@ -8,11 +8,7 @@ import { supabase } from "@/lib/supabaseClient";
 
 export async function POST(req) {
     try {
-        const userId = req.headers.get("x-user-id");
-
-        if (!userId) {
-            return Response.json({ error: "Unauthorized" }, { status: 401 });
-        }
+        const userId = req.headers.get("x-verified-user-id");
 
         await connectToDB();
 
@@ -81,6 +77,7 @@ export async function POST(req) {
                     metadata: {
                         ...split.metadata,
                         pdfId,
+                        userId,
                     },
                 }),
         );

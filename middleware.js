@@ -7,8 +7,8 @@ export async function middleware(req) {
     const supabaseUser = createServerSupabase();
 
     const {
-        data: { session },
-    } = await supabaseUser.auth.getSession();
+        data: { user },
+    } = await supabaseUser.auth.getUser();
 
     const { pathname } = req.nextUrl;
 
@@ -16,12 +16,18 @@ export async function middleware(req) {
         return res;
     }
 
-    if (!session) {
+    if (!user) {
+        if (pathname.startsWith("/api")) {
+            return NextResponse.json(
+                { error: "Unauthorized: Invalid session token" },
+                { status: 401 },
+            );
+        }
+
         return NextResponse.redirect(new URL("/signup", req.url));
     }
 
-    //pass the user id through headers
-    res.headers.set("x-user-id", session.user.id);
+    res.headers.set("x-verified-user-id", user.id);
 
     return res;
 }

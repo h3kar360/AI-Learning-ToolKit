@@ -3,14 +3,13 @@
 import { GoogleGenAI } from "@google/genai";
 import { connectToDB } from "@/lib/mongodbConnect";
 import { PDF } from "@/mongoose/schemas/pdf";
-import dotenv from "dotenv";
-
-dotenv.config();
 
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function POST(req, { params }) {
     try {
+        const userId = req.headers.get("x-verified-user-id");
+
         await connectToDB();
 
         const { pdfId } = await params;
@@ -28,7 +27,7 @@ export async function POST(req, { params }) {
             return [Number(chunk)];
         });
 
-        const pdfDoc = await PDF.findById(pdfId);
+        const pdfDoc = await PDF.findOne({ _id: pdfId, userId });
         if (!pdfDoc) throw new Error("PDF not found");
         const { chunks } = pdfDoc;
 
@@ -119,7 +118,7 @@ Flashcards:`;
         };
 
         const updatedPdf = await PDF.findOneAndUpdate(
-            { _id: pdfId },
+            { _id: pdfId, userId },
             { $push: { flashCards: flashCardData } },
             { new: true },
         );
