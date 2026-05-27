@@ -26,7 +26,10 @@ const LogInForm = () => {
             });
 
             if (error) setError(error.message);
-            else router.push("/");
+            else {
+                router.push("/");
+                router.refresh();
+            }
 
             if (!data.session) setError("Incorrect email address or password");
         } catch (error) {
